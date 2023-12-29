@@ -1,18 +1,27 @@
 class Scripture {
 	#book = "Genesis"
 	#chapter = 1
-	#verses = [1]
+	#verses = []
 
-	constructor(book, chapter, verses) {
-		// Ensure proper type for each variable
-		if (typeof(book) !== String
-			|| typeof(chapter) !== Number
-			|| !Array.isArray(verses)) {
-			throw new TypeError("Error: Expects Scripture(book: String, chapter: Number, verses: Array")
-		}
+	constructor(text) {
+		// Form: [Book] [Number]:[Number]{(-|/|,)[Number]}
+		const formRegex = /(\d*\s*\w+)\s*(\d+):(.*)/
+		const [, book, chapter, verseStr] = text.match(formRegex)
+
 		this.#book = book
-		this.#chapter = chapter
-		this.#verses = verses
+		this.#chapter = parseInt(chapter)
+	
+		const verseSplits = verseStr.split(/[,/]/)
+		for (const verse of verseSplits) {
+			if (verse.contains("-")) {
+				const [start, end] = verse.split("-")
+				for (let i = parseInt(start); i <= parseInt(end); i++) {
+					this.#verses.push(i)
+				}
+			} else {
+				this.#verses.push(parseInt(verse))
+			}
+		}
 	}
 
 	toString() {
