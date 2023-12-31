@@ -3,25 +3,10 @@ class Scripture {
 	#chapter = 1
 	#verses = []
 
-	constructor(text) {
-		// Form: [Book] [Number]:[Number]{(-|/|,)[Number]}
-		const formRegex = /(\d*\s*\w+)\s*(\d+):(.*)/
-		const [, book, chapter, verseStr] = text.match(formRegex)
-
+	constructor(book, chapter, verses) {
 		this.#book = book
 		this.#chapter = parseInt(chapter)
-	
-		const verseSplits = verseStr.split(/[,/]/)
-		for (const verse of verseSplits) {
-			if (verse.contains("-")) {
-				const [start, end] = verse.split("-")
-				for (let i = parseInt(start); i <= parseInt(end); i++) {
-					this.#verses.push(i)
-				}
-			} else {
-				this.#verses.push(parseInt(verse))
-			}
-		}
+		this.#verses = verses
 	}
 
 	toString() {
@@ -30,15 +15,21 @@ class Scripture {
 		const verseLen = this.#verses.length
 		const lastVerse = this.#verses[verseLen - 1]
 
-		// 1-5
-		if (lastVerse == (this.#verses[0] + verseLen - 1)) {
-			verseString += `-${lastVerse}`
-		// 1,4,5
-		} else {
-			verseString = this.#verses.join(",")
+		if (verseLen > 1) {
+			// 1-5
+			if (lastVerse == (this.#verses[0] + verseLen - 1)) {
+				verseString += `-${lastVerse}`
+			// 1,4,5
+			} else {
+				verseString = this.#verses.join(",")
+			}
 		}
 
 		// Genesis 2:1-5
 		return `${this.#book} ${this.#chapter}:${verseString}`
+	}
+
+	equals(other) {
+		return (this.toString() == other.toString())
 	}
 }
