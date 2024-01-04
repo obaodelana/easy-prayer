@@ -13,7 +13,7 @@ class Token {
 		this.#type = (type !== undefined) ? type : TokenType.Text
 	}
 
-	get string() { return this.#string}
+	get string() { return this.#string }
 	get type() { return this.#type }
 
 	toString() { return this.#string }
@@ -24,7 +24,7 @@ class Parser {
 	#tokens = []
 	#prayers = []
 
-	get prayers() { return this.#prayers }
+	get prayers() { return Object.freeze(this.#prayers) }
 
 	constructor(string) {
 		this.#tokens = Object.freeze(this.#tokenize(string)) // Make immutable
@@ -69,20 +69,18 @@ class Parser {
 			}
 			chapter = parseInt(this.#tokens[afterBook])
 			verses.push(parseInt(this.#tokens[afterBook + 2])) // Start verse
-			
+
 			let lastPointer = this.#pointer
 			let endVerseStart = -1
-			let nextPrayer = -1
 			endVerseLoop:
 			while ((endVerseStart = this.#consume("[Delimiter][Number]")) != -1) {
-				const currPointer = this.#pointer
-				nextPrayer = this.#consume("[Text Prayer]", lastPointer)
+				let [nextPrayer,] = this.#find("[Text Prayer]", lastPointer)
 				// In this case, we're actually looking at the Scripture of the next prayer, instead of the current one
 				if (nextPrayer != -1 && endVerseStart >= nextPrayer) {
 					this.#pointer = lastPointer
 					break
 				} else {
-					lastPointer = this.#pointer = currPointer
+					lastPointer = this.#pointer
 				}
 
 				const delimiter = this.#tokens[endVerseStart].string
@@ -111,24 +109,31 @@ class Parser {
 			this.#prayers.push(new Prayer(prayerNumber, prayerText, new Scripture(book, chapter, verses)))
 		}
 	}
-	
+
 	#tokenize(string) {
-		if (typeof(string) !== "string") {
+		if (typeof (string) !== "string") {
 			throw new TypeError()
 		}
-		
+
+		const numbers = "0123456789"
+		const delimiters = [':', ',', '/', '-', '–', '—']
+
 		let tokens = []
 		let str = ""
 		for (let i = 0; i < string.length; i++) {
 			let c = string[i]
-			
+			// If it's not a regular printable character and not a delimiter
+			if (!(c >= ' ' && c <= '~') && !delimiters.includes(c)) {
+				continue
+			}
+
 			const isWhitespace = (c.trim() === '')
-			const isNumber = (c >= "0" && c <= "9")
-			const isDelimiter = [':', ',', '/', '-', '–', '—'].includes(c)
-			
+			const isNumber = (c >= '0' && c <= '9')
+			const isDelimiter = delimiters.includes(c)
+
 			if (isNumber) {
 				str += c
-				while (i + 1 < string.length && (string[i+1] >= "0" && string[i+1] <= "9")) {
+				while (i + 1 < string.length && (string[i + 1] >= '0' && string[i + 1] <= '9')) {
 					str += string[++i]
 				}
 				tokens.push(new Token(str, TokenType.Number))
@@ -138,7 +143,7 @@ class Parser {
 				str += c
 				while (i + 1 < string.length
 					&& string[i + 1].trim() !== ''
-					&& !"0123456789".includes(string[i + 1])) {
+					&& !numbers.includes(string[i + 1])) {
 					str += string[++i]
 				}
 				tokens.push(new Token(str))
@@ -154,58 +159,70 @@ class Parser {
 
 		return tokens
 	}
-	
+
+	/*
+	 * expression: string - Defines the pattern to look out for
+	 * from: number - Starting position of loop (defaults to `#pointer)
+	 */
 	#consume(expression, from) {
 		if (from === undefined) {
 			from = this.#pointer
-		} 
+		}
+
+		let [startP, endP] = this.#find(expression, from)
+		// We got a match
+		if (startP != -1 && endP != -1) {
+			this.#pointer = endP + 1 // Consume
+		}
+
+		return startP
+	}
+
+	#find(expression, from) {
+		let firstP = -1
+		let lastP = -1
 
 		// Get "..." in "[...]"
 		const expressions = expression.split(/\[([^\[\]]+)\]/).filter((e) => e !== '')
 		const optionals = expressions.map((e) => e[e.length - 1] == '*')
 
-		let startP = -1
-		let endP = -1
-
 		tokenLoop:
 		for (let i = from; i < this.#tokens.length; i++) {
-			startP = endP = -1
-			
 			for (let j = 0; j < expressions.length; j++) {
 				const tokenIndex = i + j
 				if (tokenIndex >= this.#tokens.lengths || this.#tokens[tokenIndex] === undefined) {
 					if (!optionals[j]) {
-						return -1
+						return [-1, -1]
 					}
 				} else {
-					const words =  expressions[j].split(' ', 2)
+					const words = expressions[j].split(' ', 2)
 					let type = words[0].toLowerCase()
 					let string = (words.length == 2) ? words[1] : this.#tokens[tokenIndex].string
 					// Remove '*' at the end
 					if (type[type.length - 1] == '*') {
-						type =  type.substring(0, type.length - 1)
+						type = type.substring(0, type.length - 1)
 					} else if (string[string.length - 1] == '*') {
 						string = string.substring(0, string.length - 1)
 					}
 
 					// We got a match
 					if (type == this.#tokens[tokenIndex].type && string == this.#tokens[tokenIndex].string) {
-						if (startP == -1) {
-							startP = tokenIndex
+						if (firstP == -1) {
+							firstP = tokenIndex
 						}
-						endP = tokenIndex
-					// Not a match (for non-optionals, we move to next token)
+						lastP = tokenIndex
+						// Not a match (for non-optionals, we move to next token)
 					} else if (!optionals[j]) {
+						firstP = lastP = -1
 						continue tokenLoop
 					}
 				}
 			}
 
 			// Completely matched expression
-			this.#pointer = endP + 1
 			break
 		}
 
-		return startP
-	} 
-}	
+		return [firstP, lastP]
+	}
+}

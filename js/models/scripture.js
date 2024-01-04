@@ -2,6 +2,7 @@ class Scripture {
 	#book = "Genesis"
 	#chapter = 1
 	#verses = []
+	#text = ""
 
 	constructor(book, chapter, verses) {
 		this.#book = book
@@ -19,7 +20,7 @@ class Scripture {
 			// 1-5
 			if (lastVerse == (this.#verses[0] + verseLen - 1)) {
 				verseString += `-${lastVerse}`
-			// 1,4,5
+				// 1,4,5
 			} else {
 				verseString = this.#verses.join(",")
 			}
@@ -31,5 +32,29 @@ class Scripture {
 
 	equals(other) {
 		return (this.toString() == other.toString())
+	}
+
+	async getText() {
+		if (this.#text != "") {
+			return this.#text
+		}
+
+		const reference = this.toString()
+		const baseURL = "https://bible-api.com/"
+		let params = "?translation=kjv"
+		if (this.#verses.length > 1) {
+			params += "&verse_numbers=true"
+		}
+		const url = new URL(params,
+			new URL(reference, baseURL))
+			.toString()
+
+		const response = await fetch(url);
+		if (!response.ok) {
+			throw new Error(`Unable to load "${reference}"`)
+		} else {
+			const json = await response.json()
+			return (this.#text = json.text.toString().trim())
+		}
 	}
 }

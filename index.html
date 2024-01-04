@@ -7,13 +7,16 @@
 	<title>Easy Prayer</title>
 </head>
 <body>
+	<header>
+		<h1>Easy Prayer</h1>
+	</header>
 	<main>
-		<textarea id="textarea" rows="20">
-
-		</textarea>
-		<div>
-			<button id="button">Build</button>
-		</div>
+		<section id="input">
+			<textarea id="textbox" placeholder='Paste Prayer Document here and press "Generate."'></textarea>
+			<button class="generate" onclick="generate()">Generate</button>
+			<h3 class="error"></h3>
+		</section>
+		<section id="output"></section>
 	</main>
 
 	<script type="application/javascript" src="js/models/prayer.js"></script>

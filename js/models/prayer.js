@@ -4,8 +4,8 @@ class Prayer {
 	#scripture
 
 	constructor(number, text, scripture) {
-		if (typeof(number) !== "number"
-			|| typeof(text) !== "string"
+		if (typeof (number) !== "number"
+			|| typeof (text) !== "string"
 			|| !(scripture instanceof Scripture)) {
 			throw new TypeError("Error: Expects Prayer(number: Number, text: String, scripture: Scripture(...))")
 		}
@@ -15,19 +15,19 @@ class Prayer {
 		this.#scripture = scripture
 	}
 
-	get prayer() {
-		return `Prayer ${this.#number}\n${this.#text}`
-	}
+	get title() { return `Prayer ${this.#number}` }
 
-	get scripture() {
-		return this.#scripture
-	}
+	get text() { return this.#text }
+
+	get scripture() { return this.#scripture }
 
 	toString() {
 		return `Prayer ${this.#number}\n${this.#text}\n\r${this.#scripture}\n`;
 	}
 
 	equals(other) {
-		return (this.prayer == other.prayer && this.scripture.equals(other.scripture))
+		return (this.title == other.title
+			&& this.text == other.text
+			&& this.scripture.equals(other.scripture))
 	}
 }
