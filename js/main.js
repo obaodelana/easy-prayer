@@ -99,7 +99,7 @@ function test() {
 }
 
 function generate() {
-	const text = document.getElementById("textbox").value
+	const text = document.getElementById("textbox").value.trim()
 	if (text == textStore) {
 		return
 	} else {
@@ -175,17 +175,4 @@ function showError(message) {
 	document.querySelector("#input h3.error").textContent = message.toString()
 }
 
-function copyPrayers() {
-	if (prayers != null) {
-		navigator.permissions.query({ name: "clipboard-write" }).then((result) => {
-			if (result.state === "granted" || result.state === "prompt") {
-				let copyText = ""
-				for (const prayer of prayers) {
-					const scripture = prayer.scripture
-					copyText += `${prayer}${scripture}\n\n${scripture}${scripture.getText()}`
-				}
-				navigator.clipboard.writeText(copyText)
-			}
-		})
-	}
-}
+// test()
