@@ -115,7 +115,6 @@ function generate() {
 			if (prayers.length == 0) {
 				showError("No Prayers found")
 			} else {
-				showError("")
 				showPrayers(prayers)
 			}
 		} catch (error) {
@@ -142,29 +141,41 @@ async function showPrayers(prayers) {
 		outputSection.removeChild(outputSection.lastChild)
 	}
 
+	const translateURL = "https://www.deepl.com/translator#en/fr/"
 	for (const prayer of prayers) {
 		const scripture = prayer.scripture
-		/*
-			<div class="prayer">
-				<h3>Prayer 1</h3>
-				<p>FATHER, WE BREAK THE HOLD OF THE GATES OF HELL FROM THE LIVES OF ALL THAT ARE ORDAINED FOR SALVATION AND ESTABLISHMENT IN THIS CHURCH THIS WEEK.<br>Acts 6:7</p>
-				<br>
-				<h3>Acts 6:7</h3>
-				<p>And the word of God increased; and the number of the disciples multiplied in Jerusalem greatly; and a great company of the priests were obedient to the faith.</p>
-			</div>
-		*/
+
 		const prayerDiv = document.createElement("div")
 		prayerDiv.classList.add("prayer")
+
+		// Prayer block
 		prayerDiv.appendChild(createText("h3", prayer.title))
 		prayerDiv.appendChild(createText("p", prayer.text))
 		prayerDiv.appendChild(createText("p", scripture))
-
-		const bibleDiv = document.createElement("div")
-		bibleDiv.classList.add("prayer")
-		bibleDiv.appendChild(createText("h3", scripture.toString()))
-		bibleDiv.appendChild(createText("p", await scripture.getText()))
+		// Link to French translation
+		const frenchLink = createText("a", "French Translation")
+		frenchLink.setAttribute("href", encodeURI(translateURL + prayer.toString()))
+		frenchLink.setAttribute("target", "_blank") // Open in new tab
+		prayerDiv.appendChild(frenchLink)
 
 		outputSection.appendChild(prayerDiv)
+
+		// Bible block
+		const bibleDiv = document.createElement("div")
+		bibleDiv.classList.add("prayer")
+
+		bibleDiv.appendChild(createText("h3", scripture.toString()))
+
+		// Get Scripture text from BibleAPI
+		const text = await scripture.getText()
+		bibleDiv.appendChild(createText("p", text))
+		// Link to French translation
+		const bibleFrenchLink = createText("a", "French Translation")
+		const textWithoutNewlines = text.replace(/\s/g, " ")
+		bibleFrenchLink.setAttribute("href", encodeURI(`${translateURL}${scripture}\n${textWithoutNewlines}`))
+		bibleFrenchLink.setAttribute("target", "_blank")
+		bibleDiv.appendChild(bibleFrenchLink)
+
 		outputSection.appendChild(bibleDiv)
 	}
 
@@ -172,7 +183,13 @@ async function showPrayers(prayers) {
 }
 
 function showError(message) {
-	document.querySelector("#input h3.error").textContent = message.toString()
+	const errorH3 = document.querySelector("#input h3.error")
+	if (errorH3 !== null) {
+		errorH3.textContent = message.toString()
+		setTimeout(() => {
+			errorH3.textContent = ""
+		}, 2500)
+	}
 }
 
 // test()

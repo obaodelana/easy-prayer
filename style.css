@@ -98,6 +98,7 @@ textarea::placeholder {
 	margin-bottom: 15px;
 	padding: 15px 10px;
 	background-color: #FFF5F1;
+
 }
 
 .prayer:last-child {
@@ -108,18 +109,11 @@ textarea::placeholder {
 	font-weight: 400;
 }
 
-button.copyToClipboard {
-	visibility: hidden;
-	position: fixed;
-	background: none;
-	border: none;
-	color: #ef47668a; 
-	padding: 7px;
-	right: 0;
-	bottom: 0;
-}
-
-button.copyToClipboard:hover {
-	cursor: pointer;
-	color: #FF9A5A8a;
+.prayer a {
+	display: block;
+	margin-top: 5px;
+	text-align: right;
+	font-size: 16px;
+	color: #FF9A5A;
+	text-decoration: none;
 }

@@ -53,14 +53,14 @@ class Parser {
 			// Remove unnecessary delimiter after prayer number
 			if (this.#pointer < this.#tokens.length) {
 				const currToken = this.#tokens[this.#pointer]
-				if (currToken != undefined && currToken.type == "delimiter") {
+				if (currToken !== undefined && currToken.type == "delimiter") {
 					this.#pointer++
 				}
 			}
 
 			// Look for Scripture reference
 			const oldPointer = this.#pointer
-			const scriptureStartIndex = this.#consume("[Number*][Text][Number][Delimiter :][Number]")
+			const scriptureStartIndex = this.#consume("[Number*][Text][Number][Delimiter :][Number]", false)
 			if (scriptureStartIndex == -1) {
 				throw new Error(`Prayer ${prayerNumber} does not have a Scripture`)
 			} else {
