@@ -216,7 +216,8 @@ class Parser {
 					}
 
 					// We got a match
-					if (type == this.#tokens[tokenIndex].type && string == this.#tokens[tokenIndex].string) {
+					if (type == this.#tokens[tokenIndex].type
+						&& string.toLowerCase() == this.#tokens[tokenIndex].string.toLowerCase()) {
 						if (firstP == -1) {
 							firstP = tokenIndex
 						}
